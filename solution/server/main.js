@@ -20,11 +20,21 @@ app.get('/', function(req, res) {
 	res.sendFile('index.html', {root: path.join(__dirname)});
 });
 
+var mysql = require('mysql')
+var connection = mysql.createConnection({
+	host     : 'stusql.dcs.shef.ac.uk',
+	user     : 'acr16rm',
+	password : '1c6c2403',
+	database : 'acr16rm'
+});
+
+
 app.post('/search', function(req, res) {
 	res.setHeader('Content-Type', 'text/html');
 	//res.setHeader('Content-Length', body.length);
+	connection.connect()
 	try{
-		client.get('search/tweets', { q: JSON.stringify(req.body.query), count: 300},
+		client.get('search/tweets', { q: JSON.stringify(req.body.query), count: 100},
 			function(err, data, response) {
 
 				console.log(data.statuses.length);
@@ -34,18 +44,24 @@ app.post('/search', function(req, res) {
 					/*
 					res.write(indx + '\nDate and time: ' + tweet.created_at + ', \nUser: @' + tweet.user.screen_name + 
 						', \nlink: ' + tweet.user.url + ', \ntweet: ' + tweet.text+'\n\n');
-					*/
+						
 					res.write(indx + '<br/>Date and time: ' + tweet.created_at + ', <br/>User: @' + tweet.user.screen_name + 
 						', <br/>link: ' + tweet.user.url + ', <br/>tweet: ' + tweet.text+'<br/><br/>');
-
-					if(res.finished){
-						console.log('Stopped');
-						res.end();
+						*/
+						
+						var newtweet = tweet.text.replace(/[^A-Za-z 0-9 \.,\?""!@#\$%\^&\*\(\)-_=\+;:<>\/\\\|\}\{\[\]`~]*/g, '');
+						newtweet = newtweet.replace("\"", "&amp;");
+						connection.query('insert into tweets value("'+tweet.user.screen_name+'","'+tweet.created_at+'","'+newtweet+'","'
+							+tweet.url+'","'+tweet.user.url+'","'+tweet.id+'")', function(err, rows, field) {
+								if(err) throw err
+							})
+						if(res.finished){
+							console.log('Stopped');
+							connection.end().redirect('index.html');
+							res.end();
+						}
 					}
-					/*console.log('Date and time: ' + tweet.created_at + ', \nUser: @' + tweet.user.screen_name + 
-					', \nlink: ' + tweet.user.url + ', \ntweet: ' + tweet.text+'\n\n');*/
-				}
-			})
+				})
 	} catch(err) {
 		res.sendFile('404.html', {root: path.join(__dirname)});
 	}

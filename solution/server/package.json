@@ -1,0 +1,15 @@
+{
+  "name": "web_tech",
+  "version": "1.0.0",
+  "description": "Web Tech Test",
+  "main": "main.js",
+  "scripts": {
+    "test": "test"
+  },
+  "author": "Tianchi Ma",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.15.2",
+    "socket.io": "*"
+  }
+}

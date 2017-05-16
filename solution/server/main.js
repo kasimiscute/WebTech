@@ -28,18 +28,51 @@ var connection = mysql.createConnection({
 	password : '1c6c2403',
 	database : 'acr16rm'
 });
-
+//mysql -u acr16rm -h stusql.dcs.shef.ac.uk -p
 
 app.post('/search', function(req, res) {
 	//res.setHeader('Content-Type', 'text/html');
 	//res.setHeader('Content-Length', body.length);
 	res.writeHead(200, {"Content-Type": 'text/html', 'charset': 'utf-8'});
-	connection.connect()
+	//connection.connect()
+	var queryInput = JSON.stringify(req.body.query);
+	//console.log(queryInput);
+	var queryNew = '';
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	var who = queryInput.substring(6, queryInput.indexOf("AND")-2);
+	while(who.indexOf("\\\"")!=-1)
+	{
+		who = who.replace("\\\"", "");
+	}
+	while(who.indexOf("OR")!=-1)
+	{
+		queryNew = queryNew + 'from:' + who.substring(0, who.indexOf("OR"))+ 'OR ';
+		who = who.substring(who.indexOf(" ")+4, who.length);
+		//console.log('processing: '+who);
+	}
+	queryNew = queryNew + 'from:' + who;
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	var team = queryInput.substring(queryInput.indexOf("AND")+10, queryInput.length-2);
+	//console.log('team: '+team);
+	while(team.indexOf("\\\"")!=-1)
+	{
+		team = team.replace("\\\"", "");
+	}
+	/*while(team.indexOf("OR")!=-1)
+	{
+		queryNew = queryNew + ' ' + team.substring(0, team.indexOf("OR")+ 'OR ');
+		team = team.substring(team.indexOf(" ")+4, team.length);
+		console.log('processing: '+queryNew);
+	}*/
+	queryNew = queryNew + ' ' + team;
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	console.log('query: '+queryNew);
 	try{
-		client.get('search/tweets', { q: JSON.stringify(req.body.query), count: 100},
+		client.get('search/tweets', { q: queryNew, count: 100},
 			function(err, data, response) {
-
-				console.log(data.statuses.length);
+				//console.log('from:'+JSON.stringify(req.body.username)+' AND '+JSON.stringify(req.body.query));
+				//console.log(data.statuses.length);
+				//console.log(JSON.stringify(req.body.query));
 				res.write(
 					'<html>'+
 					'<head>'+
@@ -71,36 +104,40 @@ app.post('/search', function(req, res) {
 					res.write(indx + '<br/>Date and time: ' + tweet.created_at + ', <br/>User: @' + tweet.user.screen_name + 
 						', <br/>link: ' + tweet.user.url + ', <br/>tweet: ' + tweet.text+'<br/><br/>');
 						*/
-						
+						/*
+						if(tweet.entities.urls[0]!=null){
+							console.log('tweet: '+tweet.entities.urls[0].url);
+						}
+						else{
+							console.log('tweet: '+tweet.entities.urls[0]);
+						}
+						console.log('user: '+tweet.user.url);*/
 						res.write(
 							'<tr>'+
 							'<td>'+number+'</td>'+
 							'<td>'+tweet.user.screen_name+'</td>'+
 							'<td>'+tweet.created_at+'</td>'+
 							'<td>'+tweet.text+'</td>'+
-							'<td>'+tweet.user.url+'</td>'+
+							'<td>'+tweet.entities.url+'</td>'+
 							'<td>'+tweet.user.url+'</td>'+
 							'</tr>'
 							);
 						
 						number++;
 						var newtweet = tweet.text.replace(/[^A-Za-z 0-9 \.,\?""!@#\$%\^&\*\(\)-_=\+;:<>\/\\\|\}\{\[\]`~]*/g, '');
-						newtweet = newtweet.replace("\"", "\'\'");
-						newtweet = newtweet.replace("\"", "\'\'");
-						newtweet = newtweet.replace("\"", "\'\'");
-						newtweet = newtweet.replace("\"", "\'\'");
-						newtweet = newtweet.replace("\"", "\'\'");
-						newtweet = newtweet.replace("\"", "\'\'");
-						newtweet = newtweet.replace("\"", "\'\'");
+						while(newtweet.indexOf("\"")!=-1)
+						{
+							newtweet = newtweet.replace("\"", "\'\'");
+						}
 						//var newtweet = utf.encode(tweet.text);
-
+/*
 						connection.query('insert into tweets value("'+tweet.user.screen_name+'","'+tweet.created_at+'","'+newtweet+'","'
-							+'null'+'","'+'null'+'","'+tweet.id+'")', function(err, rows, field) {
+							+tweet.url+'","'+'null'+'","'+tweet.id+'")', function(err, rows, field) {
 								if(err) throw err
-							})
+							})*/
 						if(res.finished){
 							console.log('Stopped');
-							connection.end().redirect('/');
+							//connection.end().redirect('/');
 						}
 					}
 					res.write(

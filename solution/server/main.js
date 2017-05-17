@@ -30,7 +30,7 @@ var connection = mysql.createConnection({
 });
 //mysql -u acr16rm -h stusql.dcs.shef.ac.uk -p
 
-app.post('/search', function(req, res) {
+app.post('/search_old', function(req, res) {
 	//res.setHeader('Content-Type', 'text/html');
 	//res.setHeader('Content-Length', body.length);
 	res.writeHead(200, {"Content-Type": 'text/html', 'charset': 'utf-8'});

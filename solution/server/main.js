@@ -129,12 +129,12 @@ app.post('/search_old', function(req, res) {
 						{
 							newtweet = newtweet.replace("\"", "\'\'");
 						}
-						//var newtweet = utf.encode(tweet.text);
-/*
+						var newtweet = utf.encode(tweet.text);
+
 						connection.query('insert into tweets value("'+tweet.user.screen_name+'","'+tweet.created_at+'","'+newtweet+'","'
 							+tweet.url+'","'+'null'+'","'+tweet.id+'")', function(err, rows, field) {
 								if(err) throw err
-							})*/
+							})
 						if(res.finished){
 							console.log('Stopped');
 							//connection.end().redirect('/');

@@ -61,18 +61,18 @@ app.post('/search', function(req, res) {
 	console.log('query: '+querynew);
 
 	var tweetpack = {"tweet": []};
-	var querydate = '';
-	querynew = querynew + 'until:';
+	var queryID = '';
+	//querynew = querynew + 'since_id:';
 	var querylength = querynew.length;
 	//for(var i=0; i<3; i++)
 	var i = 0;
 	{
-		runQuery(querynew, querylength, querydate, tweetpack, i);
+		runQuery(querynew, querylength, queryID, tweetpack, i);
 	}
 	res.end();
 });
 
-function runQuery(querynew, querylength, querydate, tweetpack, i){
+function runQuery(querynew, querylength, queryID, tweetpack, i){
 		i++
 		client.get('search/tweets', { q: querynew, count: 10}, function(err, data, response) {
 			if (err) return console.error(err);
@@ -80,6 +80,7 @@ function runQuery(querynew, querylength, querydate, tweetpack, i){
 			for (var indx in data.statuses) 
 			{
 				var tweet= data.statuses[indx];
+				queryID = tweet.id;
 				var tweetObj = {
 					"index": number,
 					"date": tweet.created_at,
@@ -91,12 +92,7 @@ function runQuery(querynew, querylength, querydate, tweetpack, i){
 
 				tweetpack.tweet.push(tweetObj);
 				number++
-
-				querydate = tweet.created_at.substring(tweet.created_at.length-4, tweet.created_at.length) 
-				+ '-'+ tweet.created_at.substring(4, 7) + '-'+ tweet.created_at.substring(8, 10);
-				//querydate = querydate.substring()
-				//querydate = querydate.replace("May", "05");
-				console.log('date: '+tweet.created_at);
+				//console.log('tweet id:'+queryID);
 
 				var newtweet = tweet.text.replace(/[^A-Za-z 0-9 \.,\?""!@#\$%\^&\*\(\)-_=\+;:<>\/\\\|\}\{\[\]`~]*/g, '');
 				while(newtweet.indexOf("\"")!=-1)
@@ -104,14 +100,13 @@ function runQuery(querynew, querylength, querydate, tweetpack, i){
 					newtweet = newtweet.replace("\"", "\'\'");
 				}
 			}
-			querydate = querydate.replace("May", "05");
-			console.log('set: '+querydate);
-			querynew = querynew.substring(0, querylength) + querydate;
-			console.log(i+'update: '+querynew);
-			querydate = '';
+			//console.log('set: '+queryID);
+			querynew = querynew.substring(0, querylength) + 'max_id:' + queryID;
+			//console.log(i+'update: '+querynew);
+			queryID = '';
 			if(i<3)
 			{
-				runQuery(querynew, querylength, querydate, tweetpack, i);
+				runQuery(querynew, querylength, queryID, tweetpack, i);
 			}
 		})
 

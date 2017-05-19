@@ -22,7 +22,7 @@
 </head>
 
 <body>
-  <div class="container">
+  <div class="container-fluid">
     <div class="col-md-12">
       <nav class="navbar navbar-default navbar-inverse" role="navigation">
         <div class="navbar-header">
@@ -84,19 +84,38 @@
 
             success: function(data){//使用$.each方法遍历返回的数据date,插入到id为#result中
               var ret = JSON.stringify(data);
-              var tweet = JSON.parse(ret).tweet;
+              var oldtweet = JSON.parse(ret).oldtweet;
+              var newtweet = JSON.parse(ret).newtweet;
+              var index = 1;
               //alert('Success: '+ tweet[0]);
-              $.each(tweet, function(i, item) {
+              $.each(oldtweet, function(i, item) {
                 var content = 
                 "<tr>"+
-                "<th>"+item.index+"</th>"+
+                "<th>"+index+"</th>"+
+                "<th>Database</th>"+
                 "<th>"+item.author+"</th>"+
                 "<th>"+item.content+"</th>"+
                 "<th>"+item.date+"</th>"+
-                "<th>"+item.turl+"</th>"+
-                "<th>"+item.uurl+"</th>"+
+                "<th><a href="+item.turl+" target=\"_blank\">link</a></th>"+
+                "<th><a href="+item.uurl+" target=\"_blank\">link</a></th>"+
                 "</tr>";
                 $("#result").append(content);
+                index++;
+              })
+
+              $.each(newtweet, function(i, item) {
+                var content = 
+                "<tr>"+
+                "<th>"+index+"</th>"+
+                "<th>Twitter</th>"+
+                "<th>"+item.author+"</th>"+
+                "<th>"+item.content+"</th>"+
+                "<th>"+item.date+"</th>"+
+                "<th><a href="+item.turl+" target=\"_blank\">link</a></th>"+
+                "<th><a href="+item.uurl+" target=\"_blank\">link</a></th>"+
+                "</tr>";
+                $("#result").append(content);
+                index++;
               })
               alert('Done');
             },
@@ -140,11 +159,12 @@
             <thead>
               <tr>
                 <th>ID</th>
+                <th>Source</th>
                 <th>Author</th>
                 <th>Text</th>
                 <th>Date</th>
-                <th>Original Link</th>
-                <th>Author page Link</th>
+                <th>Tweet Link</th>
+                <th>Author Link</th>
               </tr>
             </thead>
             <tbody>

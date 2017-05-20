@@ -1,30 +1,32 @@
-var express = require('express');
-var path = require('path');
-var fs = require('fs');
+//var express = require('express');
+//var path = require('path');
+//var fs = require('fs');
 //var app = express();
-var bodyParser = require('body-parser');
-var utf = require('utf8');
+//var bodyParser = require('body-parser');
+//var utf = require('utf8');
 var protocol = require('http');
 var static = require('node-static');
 var url = require('url');
 var util = require('util');
 var file = new (static.Server)();
-var portNo = 3000;
+
+var keyword_extractor = require("keyword-extractor");
 
 var Twit = require('twit');
-/*
+
 var client = new Twit({
 	consumer_key: '4KmRYi0xBi5ItjYZjBYKEupz8',
 	consumer_secret: 'QHQpacx40n2r7Qqd2uyVXRcbxiUnwvVhcVlhNyc3QQ0R7EkwbH',
 	access_token: '4735515988-qKjtBP2qHfgcML3moEsNyaUgGECzFzU1goLDkRF',
 	access_token_secret: 'ivIC1P7aW9Kx4lmLQqst4Q6OPE32zh3xwrGDIz37ufnKj'
-});*/
+});
+/*
 var client = new Twit({
 	consumer_key: 'ZpWAwi7iJdurv8YzDdmdvBebQ',
 	consumer_secret: 'h6HJecg5AKnzrtfLWVVzqoZ7DKjo3s2KTKz1xmWiYiIqM2ralV',
 	access_token: '842778473454288896-cp8N3XoTQ9Kg1wEfKAOWARHBDeEtjFE',
 	access_token_secret: 'L48tLAUaJ8FFikjgJHkQafQ2iHttXeOwuKEarnfT3vCsF'
-});
+});*/
 
 var mysql = require('mysql')
 var connection = mysql.createConnection({
@@ -63,7 +65,7 @@ var app = protocol.createServer(function (req, res) {
 
 			var queryInput= body.query;
 			var querynew = '';
-			////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 			var who = queryInput.substring(queryInput.indexOf("(")+1, queryInput.indexOf("AND")-2);
 			while(who.indexOf("\\\"")!=-1)
 			{
@@ -75,14 +77,14 @@ var app = protocol.createServer(function (req, res) {
 				who = who.substring(who.indexOf(" ")+4, who.length);
 			}
 			querynew = querynew + 'from:' + who;
-			////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 			var team = queryInput.substring(queryInput.indexOf("AND")+10, queryInput.length-1);
 			while(team.indexOf("\\\"")!=-1)
 			{
 				team = team.replace("\\\"", "");
 			}
 			querynew = querynew + ' ' + team;
-			////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 			var tweetpack = {"oldtweet": [], "newtweet": []};
 			var queryID = '';
 			var querylength = querynew.length;
@@ -93,7 +95,7 @@ var app = protocol.createServer(function (req, res) {
 			querynew = querynew + " since:" + pastDate;
 
 			var number =1;
-			// Get id from database
+			// Get ids from database
 			var idList = [];
 			connection.query('select tweet_id from tweets', function(err, results, field) {
 				if(err) throw err
@@ -106,7 +108,42 @@ var app = protocol.createServer(function (req, res) {
 				});
 		});
 	}
+	else if ((req.method == 'POST') && (pathname == '/profile.html')) {
+		var dataFin = {ok: 'ok'};
+		req.on('data', function (data) {
+			body += data;
+		});
 
+		req.on('end', function () {
+			body= JSON.parse(body);
+
+			var querynew= body.profile;
+			
+			var profilepack = {
+				"alltweet": [], 
+				"fivetweet": [],
+				"keyword": [],
+				"wordnumber": [],
+				"sevenkeyword": [],
+				"sevenwordnumber": [],
+				"geo": []
+			};
+			var queryID = '';
+			var querylength = querynew.length;
+
+			var currentDate = GetCurTime();
+			var rounds = 0;
+
+			var sevenDate = minusDate(currentDate,7);
+			var fiveDate = minusDate(currentDate,5);
+			var keywords = [];
+			var number =1;
+			{
+				writeProfile(querynew, querylength, queryID, profilepack, number, res, sevenDate, fiveDate, rounds);
+			}
+			//writeProfile(querynew, querylength, queryID, profilepack, number, res, sevenDate, fiveDate, rounds);
+		});
+	}
 	else if ((req.method == 'POST') && (pathname == '/chart.html')) {
 		var dataFin = {ok: 'ok'};
 		req.on('data', function (data) {
@@ -178,12 +215,102 @@ function drawChart(currentDate,endDate,frequencyPack, frquency, res){
 				res.end(JSON.stringify(frequencyPack));
 				connection.end();
 			}
+		}
+	});
+}
 
+function writeProfile(querynew, querylength, queryID, profilepack, number, res, sevenDate, fiveDate, rounds){
+	var querydate = '';
+	client.get('search/tweets', { q: querynew, count: 100}, function(err, data, response) {
+		if (err) return console.error(err);
+		for (var indx in data.statuses) 
+		{
+			var tweet= data.statuses[indx];
+			queryID = tweet.id;
+
+			querydate = tweet.created_at.substring(tweet.created_at.length-4, tweet.created_at.length) 
+			+ '-'+ tweet.created_at.substring(4, 7) + '-'+ tweet.created_at.substring(8, 10);
+			querydate = querydate.replace("Jan", "01"); querydate = querydate.replace("Feb", "02");
+			querydate = querydate.replace("Mar", "03"); querydate = querydate.replace("Apr", "04");
+			querydate = querydate.replace("May", "05"); querydate = querydate.replace("Jun", "06");
+			querydate = querydate.replace("Jul", "07"); querydate = querydate.replace("Aug", "08");
+			querydate = querydate.replace("Sep", "09"); querydate = querydate.replace("Oct", "10");
+			querydate = querydate.replace("Nov", "11"); querydate = querydate.replace("Dec", "12");
+
+			if(tweet.geo!=null)
+			{
+				console.log('coordinates exist');
+				profilepack.geo.push(tweet.geo.coordinates);
+			}
+			//else{}
+			if(profilepack.alltweet.indexOf(tweet.text)<0)
+			{
+				profilepack.alltweet.push(tweet.text);
+			}
+			
+			if(querydate>fiveDate)
+			{
+				profilepack.fivetweet.push(tweet.text);
+			}
+			newwords = keyword_extractor.extract(tweet.text,{
+				language:"english",
+				remove_digits: true,
+				return_changed_case:true,
+				remove_duplicates: false
+			});
+
+			if(querydate>sevenDate)
+			{
+				for(var x=0; x<newwords.length; x++)
+				{
+					if(profilepack.sevenkeyword.indexOf(newwords[x])<0)
+					{
+						profilepack.sevenkeyword.push(newwords[x]);
+						profilepack.sevenwordnumber.push(1);
+					}
+					else
+					{
+						profilepack.sevenwordnumber[x] += 1;
+					}
+				}
+			}
+			for(var x=0; x<newwords.length; x++)
+			{
+				if(profilepack.keyword.indexOf(newwords[x])<0)
+				{
+					profilepack.keyword.push(newwords[x]);
+					profilepack.wordnumber.push(1);
+				}
+				else
+				{
+					profilepack.wordnumber[x] += 1;
+				}
+			}
+			
 		}
 
-	});
-
-}
+		querynew = querynew.substring(0, querylength) + ' max_id:' + queryID;
+		queryID = '';
+		number++;//if(querydate>=pastDate)
+		if(rounds < 5)
+		{
+			rounds++;
+			if(rounds==5)
+			{
+				res.writeHead(200, { "Content-Type": "application/json"});
+				res.end(JSON.stringify(profilepack));
+			}
+			writeProfile(querynew, querylength, queryID, profilepack, number, res, sevenDate, fiveDate, rounds);
+			/*
+			console.log('rounds: '+rounds);
+			console.log('word: '+profilepack.keyword);
+			console.log('number: '+profilepack.sevenwordnumber);
+			console.log('geo: '+profilepack.geo);
+			console.log(profilepack.alltweet.length);
+			console.log();*/
+			}
+		})
+};
 
 function runQuery(querynew, querylength, queryID, tweetpack, number, res, pastDate, idList){
 	var querydate = '';
@@ -206,12 +333,12 @@ function runQuery(querynew, querylength, queryID, tweetpack, number, res, pastDa
 
 			querydate = tweet.created_at.substring(tweet.created_at.length-4, tweet.created_at.length) 
 			+ '-'+ tweet.created_at.substring(4, 7) + '-'+ tweet.created_at.substring(8, 10);
-			querydate = querydate.replace("Apr", "04");
-			querydate = querydate.replace("May", "05");
-			querydate = querydate.replace("Jun", "06");
-			querydate = querydate.replace("Jul", "07");
-
-			
+			querydate = querydate.replace("Jan", "01"); querydate = querydate.replace("Feb", "02");
+			querydate = querydate.replace("Mar", "03"); querydate = querydate.replace("Apr", "04");
+			querydate = querydate.replace("May", "05"); querydate = querydate.replace("Jun", "06");
+			querydate = querydate.replace("Jul", "07"); querydate = querydate.replace("Aug", "08");
+			querydate = querydate.replace("Sep", "09"); querydate = querydate.replace("Oct", "10");
+			querydate = querydate.replace("Nov", "11"); querydate = querydate.replace("Dec", "12");
 
 			if(querydate<pastDate)
 			{

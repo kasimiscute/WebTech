@@ -28,12 +28,19 @@ var TEST_TABLE = 'datatest';
 
 
 var mysql = require('mysql');
+/*
 var connection = mysql.createConnection({
   host     : 'localhost',
 	user     : 'root',
 	password : 'Mr123456',
 	database : 'test',
   dateStrings: 'date',
+});*/
+var connection = mysql.createConnection({
+  host     : 'stusql.dcs.shef.ac.uk',
+  user     : 'acr16rm',
+  password : '1c6c2403',
+  database : 'acr16rm'
 });
 connection.connect();
 
@@ -71,7 +78,7 @@ var app = protocol.createServer(function (req, res) {
 	var pathname = url.parse(req.url).pathname;
 	var body = '';
 
-	if ((req.method == 'POST') && (pathname == '/index.html')) {
+	if ((req.method == 'POST') && (pathname == '/chart.html')) {
 		var dataFin = {ok: 'ok'};
 		req.on('data', function (data) {
 			body += data;
@@ -90,7 +97,7 @@ var app = protocol.createServer(function (req, res) {
       var frquency = 0;
       var i = 0;
 
-      runQuery( currentDate,endDate ,frequencyPack, frquency, res);
+      drawChart(currentDate, endDate ,frequencyPack, frquency, res);
 });
 	}
 	else {
@@ -114,8 +121,8 @@ var app = protocol.createServer(function (req, res) {
 }).listen(3000);
 
 
-function runQuery(currentDate,endDate,frequencyPack, frquency, res){
-  var userGetSql =  'SELECT date from datatest where date = ?';
+function drawChart(currentDate,endDate,frequencyPack, frquency, res){
+  var userGetSql =  'SELECT date from tweets where date = ?';
   var userGetSql_Params = [currentDate];
   var pastDate = minusDate(currentDate,1);
     connection.query(userGetSql,userGetSql_Params,function selectCb(error,results,fields){
@@ -138,15 +145,14 @@ function runQuery(currentDate,endDate,frequencyPack, frquency, res){
 
             currentDate = pastDate;
             pastDate = minusDate(currentDate,1);
-            runQuery(currentDate,endDate,frequencyPack,frquency, res);
+            drawChart(currentDate,endDate,frequencyPack,frquency, res);
           }
     else{
-            console.log("results..................................");
-            console.log(frequencyPack);
+            //console.log("results..................................");
+            //console.log(frequencyPack);
             res.writeHead(200, { "Content-Type": "application/json"});
             res.end(JSON.stringify(frequencyPack));
             connection.end();
-
           }
 
       }

@@ -12,19 +12,19 @@ var file = new (static.Server)();
 var portNo = 3000;
 
 var Twit = require('twit');
-
+/*
 var client = new Twit({
 	consumer_key: '4KmRYi0xBi5ItjYZjBYKEupz8',
 	consumer_secret: 'QHQpacx40n2r7Qqd2uyVXRcbxiUnwvVhcVlhNyc3QQ0R7EkwbH',
 	access_token: '4735515988-qKjtBP2qHfgcML3moEsNyaUgGECzFzU1goLDkRF',
 	access_token_secret: 'ivIC1P7aW9Kx4lmLQqst4Q6OPE32zh3xwrGDIz37ufnKj'
-});/*
-var client = new Twit({
-  consumer_key: 'ZpWAwi7iJdurv8YzDdmdvBebQ',
-  consumer_secret: 'h6HJecg5AKnzrtfLWVVzqoZ7DKjo3s2KTKz1xmWiYiIqM2ralV',
-  access_token: '842778473454288896-cp8N3XoTQ9Kg1wEfKAOWARHBDeEtjFE',
-  access_token_secret: 'L48tLAUaJ8FFikjgJHkQafQ2iHttXeOwuKEarnfT3vCsF'
 });*/
+var client = new Twit({
+	consumer_key: 'ZpWAwi7iJdurv8YzDdmdvBebQ',
+	consumer_secret: 'h6HJecg5AKnzrtfLWVVzqoZ7DKjo3s2KTKz1xmWiYiIqM2ralV',
+	access_token: '842778473454288896-cp8N3XoTQ9Kg1wEfKAOWARHBDeEtjFE',
+	access_token_secret: 'L48tLAUaJ8FFikjgJHkQafQ2iHttXeOwuKEarnfT3vCsF'
+});
 
 var mysql = require('mysql')
 var connection = mysql.createConnection({
@@ -99,17 +99,34 @@ var app = protocol.createServer(function (req, res) {
 				if(err) throw err
 					for (var i=0; i<results.length; i++) 
 					{
-			            var x = results[i];
-			            idList.push(x['tweet_id'])
-			        } 
-				runQuery(querynew, querylength, queryID, tweetpack, number, res, pastDate, idList);
-				//console.log(idList);
-			});
-			//console.log(idList);
+						var x = results[i];
+						idList.push(x['tweet_id'])
+					} 
+					runQuery(querynew, querylength, queryID, tweetpack, number, res, pastDate, idList);
+				});
+		});
+	}
 
-			{
-				//runQuery(querynew, querylength, queryID, tweetpack, number, res, pastDate);
-			}
+	else if ((req.method == 'POST') && (pathname == '/chart.html')) {
+		var dataFin = {ok: 'ok'};
+		req.on('data', function (data) {
+			body += data;
+		});
+
+		req.on('end', function () {
+			body= JSON.parse(body);
+
+
+			var currentDate = GetCurTime();
+			var endDate = minusDate(currentDate,7);
+			//console.log(currentDate);
+
+			var datePack = {"date":[]};
+			var frequencyPack = {"frequency" : []};
+			var frquency = 0;
+			var i = 0;
+
+			drawChart(currentDate, endDate ,frequencyPack, frquency, res);
 		});
 	}
 	else {
@@ -129,6 +146,44 @@ var app = protocol.createServer(function (req, res) {
 		});
 	}
 }).listen(3000);
+
+function drawChart(currentDate,endDate,frequencyPack, frquency, res){
+	var userGetSql =  'SELECT date from tweets where date = ?';
+	var userGetSql_Params = [currentDate];
+	var pastDate = minusDate(currentDate,1);
+	connection.query(userGetSql,userGetSql_Params,function selectCb(error,results,fields){
+
+		if(error) {console.log('[SELECT ERROR] - ',error.message);return;}
+		if(results){
+			if(currentDate >= endDate){
+				frequency=0;
+				for (var i=0; i<results.length; i++) {
+					var firstResult = results[i];
+					frequency++;
+				}
+				var frequencyObj = {
+					"number": frequency,
+					"currentDate": currentDate,
+					"pastdate": pastDate,
+				};
+
+				frequencyPack.frequency.push(frequencyObj);
+
+				currentDate = pastDate;
+				pastDate = minusDate(currentDate,1);
+				drawChart(currentDate,endDate,frequencyPack,frquency, res);
+			}
+			else{
+				res.writeHead(200, { "Content-Type": "application/json"});
+				res.end(JSON.stringify(frequencyPack));
+				connection.end();
+			}
+
+		}
+
+	});
+
+}
 
 function runQuery(querynew, querylength, queryID, tweetpack, number, res, pastDate, idList){
 	var querydate = '';
@@ -165,16 +220,16 @@ function runQuery(querynew, querylength, queryID, tweetpack, number, res, pastDa
 			else
 			{
 				connection.query('select tweet_id from tweets', function(err, results, field) {
-				if(err) throw err
-					for (var i=0; i<results.length; i++) 
-					{
-						if(idList.indexOf(tweet.id_str)==-1)
+					if(err) throw err
+						for (var i=0; i<results.length; i++) 
 						{
-							var x = results[i];
-			            	idList.push(x['tweet_id']);
+							if(idList.indexOf(tweet.id_str)==-1)
+							{
+								var x = results[i];
+								idList.push(x['tweet_id']);
+							}
 						}
-			        }
-			    });
+					});
 
 				if(idList.indexOf(tweet.id_str)==-1)
 				{
@@ -206,6 +261,7 @@ function runQuery(querynew, querylength, queryID, tweetpack, number, res, pastDa
 		if(querydate>=pastDate)
 		{
 			runQuery(querynew, querylength, queryID, tweetpack, number, res, pastDate, idList);
+			console.log(number);
 		}
 		if(querydate<pastDate)
 		{
@@ -239,7 +295,3 @@ function minusDate(date,days){
 	return d.getFullYear() + "-" + m + "-" + add_zero(d.getDate());
 
 }
-/*
-app.listen(3000, function() {
-	console.log('Listening ar port 3000');
-});*/

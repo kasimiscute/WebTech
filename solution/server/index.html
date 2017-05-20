@@ -6,8 +6,12 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Tweet Searching</title>
-  <link href="http://cdn.static.runoob.com/libs/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
-  <script src="https://cdn.bootcss.com/jquery/1.12.4/jquery.min.js"></script>
+  <link rel="stylesheet" href="http://cdn.static.runoob.com/libs/bootstrap/3.3.7/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css">
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
   <style type="text/css">
     td {
       text-align: center;
@@ -34,7 +38,7 @@
               <a href="/">Home</a>
             </li>
             <li>
-              <a href="#">button1</a>
+              <a href="/index-H.html" target="_blank">Line Chart</a>
             </li>
             <li>
               <a href="#">button2</a>
@@ -54,9 +58,10 @@
             <span class="label label-default" for="query">Input query here: </span>
             <div class="input-group">
 
-              <input type="text" class="form-control" id="query" name="query">
+              <input type="text" class="form-control" id="query" name="query" value="who:(BBCSport) AND team:(Chelsea)">
               <span class="input-group-btn">
                 <button class="btn btn-primary" id="sendButton">Search!</button>
+                <button class="btn btn-primary" id="drawChart">Chart!</button>
               </span>
             </div>
             <!-- /input-group -->
@@ -67,6 +72,60 @@
 
       <script>
 
+        var sendButton2 = document.getElementById('drawChart');
+        sendButton2.onclick = sendData2;
+        function sendData2() {
+          var form = document.getElementById('myForm');
+          sendAjaxQuery2('/', JSON.stringify($('form').serializeObject()));
+        }
+        function sendAjaxQuery2(url, data) {
+          $.ajax({
+            url: url + 'chart.html',
+            data: data,
+            dataType: 'json',
+            type: 'POST', //timeout: 10000,
+
+            success: function(data) { //使用$.each方法遍历返回的数据date,插入到id为#result中
+              //console.info(data);
+              alert('Done');
+
+              Drawchart(data);
+            },
+            error: function(xhr, status, error) {
+              alert('Error: ' + error.message);
+            }
+          });
+        }
+        function Drawchart(data) {
+          var barData = {};
+          barData.labels = [];
+          barData.datasets = [];
+
+
+          var temData = {};
+          temData.data = [];
+          temData.fillColor = "rgba(151,187,205,0.5)";
+          temData.strokeColor = "rgba(151,187,205,0.8)";
+          temData.highlightFill = "rgba(151,187,205,0.75)",
+            temData.highlightStroke = "rgba(151,187,205,1)";
+
+          var ret = JSON.stringify(data);
+          var frequency = JSON.parse(ret).frequency;　
+
+          $.each(frequency, function(i, item) {
+            barData.labels.push(item.currentDate);
+            temData.data.push(item.number);
+          })
+          barData.datasets.push(temData);
+
+          var ctx = document.getElementById("myChart").getContext('2d');
+          var lineChart = new Chart(ctx, {
+            type: 'line',
+            data: barData,
+          });
+        }
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         var sendButton = document.getElementById('sendButton');
         sendButton.onclick = sendData;
 
@@ -88,6 +147,8 @@
               var newtweet = JSON.parse(ret).newtweet;
               var index = 1;
               //alert('Success: '+ tweet[0]);
+              $("#result").append("<tr>"+oldtweet.length+" queries from database and "
+                +newtweet.length+" queries from Twitter.</tr>");
               $.each(oldtweet, function(i, item) {
                 var content = 
                 "<tr>"+
@@ -119,12 +180,6 @@
               })
               alert('Done');
             },
-/*
-            success: function (dataR) {
-              var ret = JSON.stringify(dataR);
-              alert('Success: '+ ret);
-              //document.getElementById("myForm").innerHTML=xmlhttp.responseText;
-            },*/
             error: function (xhr, status, error) {
               alert('Error: ' + error.message);
 
@@ -151,11 +206,12 @@
 
       </script>
 
-
+      <p>chart</p>
+      <canvas id="myChart" width="600" height="400"></canvas>
       <div class="table-responsive">
         <div class="col-lg-12">
           <table class="table-hover col-lg-12 table-bordered table-striped" id="result" name="result">
-            <caption>caption......</caption>
+            <caption>Tweets</caption>
             <thead>
               <tr>
                 <th>ID</th>

@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tweet Searching</title>
+  <link rel="stylesheet" href="http://cdn.static.runoob.com/libs/bootstrap/3.3.7/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css">
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+  <style type="text/css">
+    td {
+      text-align: center;
+      vertical-align: middle!important;
+    }
+
+    th {
+      text-align: center;
+      vertical-align: middle!important;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="col-md-12">
+      <nav class="navbar navbar-default navbar-inverse" role="navigation">
+        <div class="navbar-header">
+          <a class="navbar-brand" href="#">Tweet searching</a>
+        </div>
+        <div>
+          <ul class="nav navbar-nav">
+            <li>
+              <a href="/">Home</a>
+            </li>
+            <li>
+              <a href="#">button1</a>
+            </li>
+            <li>
+              <a href="#">button2</a>
+            </li>
+          </ul>
+        </div>
+      </nav>
+    </div>
+
+    <div style="padding: 200px 100px 10px;">
+      <!--  <form class="bs-example bs-example-form" role="form" action="search" method="post"> -->
+      <form id="myForm" onsubmit="return false;">
+        <div class="row">
+          <div class="col-lg-10 col-lg-offset-1">
+            <p>Query example</p>
+            <p>who:(BBCSport) AND team:(Chelsea)</p>
+            <span class="label label-default" for="query">Input query here: </span>
+            <div class="input-group">
+
+              <input type="text" class="form-control" id="query" name="query">
+              <span class="input-group-btn">
+                <button class="btn btn-primary" id="sendButton">Search!</button>
+              </span>
+            </div>
+            <!-- /input-group -->
+          </div>
+          <!-- /.col-lg-6 -->
+        </div>
+      </form>
+      <script>
+        var sendButton = document.getElementById('sendButton');
+        sendButton.onclick = sendData;
+
+        function sendData() {
+          var form = document.getElementById('myForm');
+          sendAjaxQuery('/', JSON.stringify($('form').serializeObject()));
+        }
+
+        function sendAjaxQuery(url, data) {
+          $.ajax({
+            url: url + 'index.html',
+            data: data,
+            dataType: 'json',
+            type: 'POST', //timeout: 10000,
+
+            success: function(data) { //使用$.each方法遍历返回的数据date,插入到id为#result中
+              console.info(data);
+
+              Drawchart(data);
+              //alert('Done');
+            },
+            /*
+                        success: function (dataR) {
+                          var ret = JSON.stringify(dataR);
+                          alert('Success: '+ ret);
+                          //document.getElementById("myForm").innerHTML=xmlhttp.responseText;
+                        },*/
+            error: function(xhr, status, error) {
+              alert('Error: ' + error.message);
+
+            }
+          });
+
+        }
+
+
+        $.fn.serializeObject = function() {
+          var o = {};
+          var a = this.serializeArray();
+          $.each(a, function() {
+            if (o[this.name] !== undefined) {
+              if (!o[this.name].push) {
+                o[this.name] = [o[this.name]];
+              }
+              o[this.name].push(this.value || '');
+            } else {
+              o[this.name] = this.value || '';
+            }
+          });
+          return o;
+        };
+
+        function Drawchart(data) {
+
+
+          var barData = {};
+          barData.labels = [];
+          barData.datasets = [];
+
+
+          var temData = {};
+          temData.data = [];
+          temData.fillColor = "rgba(151,187,205,0.5)";
+          temData.strokeColor = "rgba(151,187,205,0.8)";
+          temData.highlightFill = "rgba(151,187,205,0.75)",
+            temData.highlightStroke = "rgba(151,187,205,1)";
+
+          var ret = JSON.stringify(data);
+          var frequency = JSON.parse(ret).frequency;　
+
+
+          $.each(frequency, function(i, item) {
+            barData.labels.push(item.currentDate);
+            temData.data.push(item.number);
+          })
+          barData.datasets.push(temData);
+          console.info(barData);
+
+
+          var options = {
+            scaleOverlay: false,
+            scaleOverride: false,
+            scaleSteps: null,
+            scaleStepWidth: null,
+            scaleStartValue: null,
+            scaleLineColor: "rgba(0,0,0,.1)",
+            scaleLineWidth: 1,
+            scaleShowLabels: true,
+
+            scaleFontFamily: "'Arial'",
+            scaleFontSize: 12,
+            scaleFontStyle: "normal",
+            scaleFontColor: "#666",
+            scaleShowGridLines: true,
+            scaleGridLineColor: "rgba(0,0,0,.05)",
+            scaleGridLineWidth: 1,
+            bezierCurve: true,
+            pointDot: true,
+            pointDotRadius: 3,
+            pointDotStrokeWidth: 1,
+            datasetStroke: true,
+            datasetStrokeWidth: 2,
+            datasetFill: true,
+            animation: true,
+            animationSteps: 60,
+            animationEasing: "easeOutQuart",
+            onAnimationComplete: null
+          };
+          var ctx = document.getElementById("myChart").getContext('2d');
+          myChart = new Chart(ctx).Bar(barData, options, { //重点在这里
+            responsive: true
+          });
+        }
+      </script>
+      <p>chart</p>
+      <canvas id="myChart" width="600" height="400"></canvas>
+
+
+      <div class="table-responsive">
+        <div class="col-lg-12">
+          <table class="table-hover col-lg-12 table-bordered table-striped" id="result" name="result">
+            <caption>caption......</caption>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Author</th>
+                <th>Text</th>
+                <th>Date</th>
+                <th>Original Link</th>
+                <th>Author page Link</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+</body>
+
+<footer>
+  <div class="col-md-12">
+    <br />
+    <p class="text-center">
+      @ 2017 Tweet searching system
+    </p>
+  </div>
+
+</footer>
+
+</html>

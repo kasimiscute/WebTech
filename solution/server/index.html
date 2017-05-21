@@ -6,13 +6,20 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Tweet Searching</title>
+
+  <!--Import the bootstrap.css into the frontpage -->
   <link rel="stylesheet" href="http://cdn.static.runoob.com/libs/bootstrap/3.3.7/css/bootstrap.min.css">
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css">
 
+  <!-- Import the Chart.js into the index page to create the chart -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.min.js"></script>
+
+  <!--Import the jquery into the index page-->
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.min.js"></script>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
   <style type="text/css">
+    /* Set the table content in the middle */
+
     td {
       text-align: center;
       vertical-align: middle!important;
@@ -28,6 +35,7 @@
 <body>
   <div class="container-fluid">
     <div class="col-md-12">
+      <!-- The Index bar direct to the index or profile page -->
       <nav class="navbar navbar-default navbar-inverse navbar-fixed-top" role="navigation">
 
         <div class="navbar-header">
@@ -48,8 +56,8 @@
 
 
 
-    <div style="padding: 200px 100px 10px;">
-      <!--  <form class="bs-example bs-example-form" role="form" action="search" method="post"> -->
+    <div style="padding: 100px 100px 10px;">
+      <!--The input field to input the query you want to search -->
       <form id="myForm" onsubmit="return false;">
         <div class="row">
           <div class="col-lg-10 col-lg-offset-1">
@@ -68,173 +76,221 @@
 
         </div>
       </form>
-      <p>chart</p>
-      <canvas id="myChart" width="300" height="200"></canvas>
     </div>
 
+    <!--Create the chart to show the frequency -->
+    <div class="col-lg-12">
+      <div class="col-lg-6">
+        <p>Frequency chart</p>
+        <canvas id="myChart" width="300" height="200"></canvas>
+      </div>
+      <div class="col-lg-6">
+        <div class="table-responsive">
 
-    <script>
-      var sendButton2 = document.getElementById('drawChart');
-      sendButton2.onclick = sendData2;
+          <table class="table-hover col-lg-12 table-bordered table-striped" id="frequencyresult" name="frequencyresult">
+            <caption>Frequency</caption>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>currentDate</th>
+                <th>frequency</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
 
-      function sendData2() {
-        var form = document.getElementById('myForm');
-        sendAjaxQuery2('/', JSON.stringify($('form').serializeObject()));
-      }
-
-      function sendAjaxQuery2(url, data) {
-        $.ajax({
-          url: url + 'chart.html',
-          data: data,
-          dataType: 'json',
-          type: 'POST', //timeout: 10000,
-
-          success: function(data) { //使用$.each方法遍历返回的数据date,插入到id为#result中
-            //console.info(data);
-            alert('Done');
-
-            Drawchart(data);
-          },
-          error: function(xhr, status, error) {
-            alert('Error: ' + error.message);
-          }
-        });
-      }
-
-      function Drawchart(data) {
-        var barData = {};
-        barData.labels = [];
-        barData.datasets = [];
-
-
-        var temData = {};
-        temData.data = [];
-        temData.fillColor = "rgba(151,187,205,0.5)";
-        temData.strokeColor = "rgba(151,187,205,0.8)";
-        temData.highlightFill = "rgba(151,187,205,0.75)",
-          temData.highlightStroke = "rgba(151,187,205,1)";
-
-        var ret = JSON.stringify(data);
-        var frequency = JSON.parse(ret).frequency;　
-
-        $.each(frequency, function(i, item) {
-          barData.labels.push(item.currentDate);
-          temData.data.push(item.number);
-        })
-        barData.datasets.push(temData);
-
-        var ctx = document.getElementById("myChart").getContext('2d');
-        var lineChart = new Chart(ctx, {
-          type: 'line',
-          data: barData,
-        });
-      }
-
-      //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-      var sendButton = document.getElementById('sendButton');
-      sendButton.onclick = sendData;
-
-      function sendData() {
-        var form = document.getElementById('myForm');
-        sendAjaxQuery('/', JSON.stringify($('form').serializeObject()));
-      }
-
-      function sendAjaxQuery(url, data) {
-        $.ajax({
-          url: url + 'index.html',
-          data: data,
-          dataType: 'json',
-          type: 'POST', //timeout: 10000,
-
-          success: function(data) { //使用$.each方法遍历返回的数据date,插入到id为#result中
-            var ret = JSON.stringify(data);
-            var oldtweet = JSON.parse(ret).oldtweet;
-            var newtweet = JSON.parse(ret).newtweet;
-            var index = 1;
-            //alert('Success: '+ tweet[0]);
-            $("#result").append("<tr>" + oldtweet.length + " queries from database and " +
-              newtweet.length + " queries from Twitter.</tr>");
-            $.each(oldtweet, function(i, item) {
-              var content =
-                "<tr>" +
-                "<th>" + index + "</th>" +
-                "<th>Database</th>" +
-                "<th>" + item.author + "</th>" +
-                "<th>" + item.content + "</th>" +
-                "<th>" + item.date + "</th>" +
-                "<th><a href=" + item.turl + " target=\"_blank\">link</a></th>" +
-                "<th><a href=" + item.uurl + " target=\"_blank\">link</a></th>" +
-                "</tr>";
-              $("#result").append(content);
-              index++;
-            })
-
-            $.each(newtweet, function(i, item) {
-              var content =
-                "<tr>" +
-                "<th>" + index + "</th>" +
-                "<th>Twitter</th>" +
-                "<th>" + item.author + "</th>" +
-                "<th>" + item.content + "</th>" +
-                "<th>" + item.date + "</th>" +
-                "<th><a href=" + item.turl + " target=\"_blank\">link</a></th>" +
-                "<th><a href=" + item.uurl + " target=\"_blank\">link</a></th>" +
-                "</tr>";
-              $("#result").append(content);
-              index++;
-            })
-            alert('Done');
-          },
-          error: function(xhr, status, error) {
-            alert('Error: ' + error.message);
-
-          }
-        });
-
-      }
-
-      $.fn.serializeObject = function() {
-        var o = {};
-        var a = this.serializeArray();
-        $.each(a, function() {
-          if (o[this.name] !== undefined) {
-            if (!o[this.name].push) {
-              o[this.name] = [o[this.name]];
-            }
-            o[this.name].push(this.value || '');
-          } else {
-            o[this.name] = this.value || '';
-          }
-        });
-        return o;
-      };
-    </script>
-
-    <div class="table-responsive">
-      <div class="col-lg-12">
-        <table class="table-hover col-lg-12 table-bordered table-striped" id="result" name="result">
-          <caption>Tweets</caption>
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Source</th>
-              <th>Author</th>
-              <th>Text</th>
-              <th>Date</th>
-              <th>Tweet Link</th>
-              <th>Author Link</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-
-            </tr>
-          </tbody>
-        </table>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>
 
+
+
+  <!--Create the table to show the search results -->
+  <div class="table-responsive">
+    <div class="col-lg-12">
+      <table class="table-hover col-lg-12 table-bordered table-striped" id="result" name="result">
+        <caption>Tweets</caption>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Source</th>
+            <th>Author</th>
+            <th>Text</th>
+            <th>Date</th>
+            <th>Tweet Link</th>
+            <th>Author Link</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!--Create the table to show the frequency results -->
+
+
+  <script>
+    /*------------------------1.1 Search data parts-------------------------------*/
+
+    //Add listener to the Draw chart button
+    var sendButton = document.getElementById('sendButton');
+    sendButton.onclick = sendData;
+
+    // Send data to the frontpage
+    function sendData() {
+      var form = document.getElementById('myForm');
+      sendAjaxQuery('/', JSON.stringify($('form').serializeObject()));
+    }
+    //Deal with the data
+    function sendAjaxQuery(url, data) {
+      $.ajax({
+        url: url + 'index.html',
+        data: data,
+        dataType: 'json',
+        type: 'POST', //timeout: 10000,
+
+        //Store the data into the table
+        success: function(data) {
+          var ret = JSON.stringify(data);
+          var oldtweet = JSON.parse(ret).oldtweet;
+          var newtweet = JSON.parse(ret).newtweet;
+          var index = 1;
+
+          $("#result").append("<tr>" + oldtweet.length + " queries from database and " +
+            newtweet.length + " queries from Twitter.</tr>");
+          $.each(oldtweet, function(i, item) {
+            var content =
+              "<tr>" +
+              "<td>" + index + "</td>" +
+              "<td>Database</td>" +
+              "<td>" + item.author + "</td>" +
+              "<td>" + item.content + "</td>" +
+              "<td>" + item.date + "</td>" +
+              "<td><a href=" + item.turl + " target=\"_blank\">link</a></td>" +
+              "<td><a href=" + item.uurl + " target=\"_blank\">link</a></td>" +
+              "</tr>";
+            $("#result").append(content);
+            index++;
+          })
+
+          $.each(newtweet, function(i, item) {
+            var content =
+              "<tr>" +
+              "<td>" + index + "</td>" +
+              "<td>Twitter</td>" +
+              "<td>" + item.author + "</td>" +
+              "<td>" + item.content + "</td>" +
+              "<td>" + item.date + "</td>" +
+              "<td><a href=" + item.turl + " target=\"_blank\">link</a></td>" +
+              "<td><a href=" + item.uurl + " target=\"_blank\">link</a></td>" +
+              "</tr>";
+            $("#result").append(content);
+            index++;
+          })
+          alert('Done');
+        },
+        error: function(xhr, status, error) {
+          alert('Error: ' + error.message);
+
+        }
+      });
+
+    }
+    /*--------------------------------1.2 Create Data parts------------------------------*/
+
+    //Add listener to the Draw chart button
+    var sendButton2 = document.getElementById('drawChart');
+    sendButton2.onclick = sendData2;
+
+    // Send data to the frontpage
+    function sendData2() {
+      var form = document.getElementById('myForm');
+      sendAjaxQuery2('/', JSON.stringify($('form').serializeObject()));
+    }
+
+    //Deal with the data
+    function sendAjaxQuery2(url, data) {
+      $.ajax({
+        url: url + 'chart.html',
+        data: data,
+        dataType: 'json',
+        type: 'POST', //timeout: 10000,
+
+        //use the data to draw thr chart on the frontpage
+        success: function(data) {
+          alert('Done');
+          Drawchart(data);
+        },
+        error: function(xhr, status, error) {
+          alert('Error: ' + error.message);
+        }
+      });
+    }
+
+    //set and add the chart  into the frontpage, add frequenct number into the table
+    function Drawchart(data) {
+      var index = 1;
+      var barData = {};
+      barData.labels = [];
+      barData.datasets = [];
+
+      var temData = {};
+      temData.data = [];
+      temData.fillColor = "rgba(151,187,205,0.5)";
+      temData.strokeColor = "rgba(151,187,205,0.8)";
+      temData.highlightFill = "rgba(151,187,205,0.75)",
+        temData.highlightStroke = "rgba(151,187,205,1)";
+
+      var ret = JSON.stringify(data);
+      var frequency = JSON.parse(ret).frequency;　
+
+      $.each(frequency, function(i, item) {
+        barData.labels.push(item.currentDate);
+        temData.data.push(item.number);
+        var content =
+          "<tr>" +
+          "<td>" + index + "</td>" +
+          "<td>" + item.currentDate + "</td>" +
+          "<td>" + item.number +
+          "</tr>";
+        $("#frequencyresult").append(content);
+        index++;
+      })
+
+      barData.datasets.push(temData);
+
+
+      var ctx = document.getElementById("myChart").getContext('2d');
+      var lineChart = new Chart(ctx, {
+        type: 'line',
+        data: barData,
+      });
+    }
+
+    $.fn.serializeObject = function() {
+      var o = {};
+      var a = this.serializeArray();
+      $.each(a, function() {
+        if (o[this.name] !== undefined) {
+          if (!o[this.name].push) {
+            o[this.name] = [o[this.name]];
+          }
+          o[this.name].push(this.value || '');
+        } else {
+          o[this.name] = this.value || '';
+        }
+      });
+      return o;
+    };
+  </script>
 </body>
 
 <footer>

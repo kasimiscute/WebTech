@@ -11,8 +11,7 @@
 
   <title>profile</title>
   <style>
-    /* Always set the map height explicitly to define the size of the div
-    * element that contains the map. */
+    /* Set the table and map 's preference'*/
 
     td {
       text-align: center;
@@ -27,7 +26,7 @@
     #map {
       height: 100%;
     }
-    /* Optional: Makes the sample page fill the window. */
+    /*  Makes the front page fill the window. */
 
     html,
     body {
@@ -41,6 +40,7 @@
 <body>
   <div class="container-fluid">
     <div class="col-md-12">
+      <!-- The Index bar helps you point to the correct page -->
       <nav class="navbar navbar-default navbar-inverse navbar-fixed-top" role="navigation">
         <div class="navbar-header">
           <a class="navbar-brand" href="#">Tweet searching</a>
@@ -57,10 +57,12 @@
         </div>
       </nav>
     </div>
-
+    <!--Create the map using google map API -->
     <div style="padding: 50px 100px 10px;">
       <h2 class="text-left"> The location of the tweets</h2>
       <div id="map" class="col-md-offset-3" style="width:700px;height:400px;"></div>
+
+      <!-- The search field -->
       <form id="newForm" onsubmit="return false;">
         <div class="row">
           <div class="col-lg-10 col-lg-offset-1">
@@ -76,7 +78,7 @@
       </form>
     </div>
 
-
+    <!--Create a table to show the search results here -->
     <div class="table-responsive">
       <div class="col-lg-12">
         <table class="table-hover col-lg-12 table-bordered table-striped" id="result" name="result">
@@ -105,14 +107,16 @@
 
 
   <script>
+    // Add click listener to the the writeprofile button
     var sendButton3 = document.getElementById('writeProfile');
     sendButton3.onclick = sendData3;
 
+    // Send data to the frontpage
     function sendData3() {
       var form = document.getElementById('newForm');
       sendAjaxQuery3('/', JSON.stringify($('form').serializeObject()));
     }
-
+    //Deal with the data
     function sendAjaxQuery3(url, data) {
       $.ajax({
         url: url + 'profile.html',
@@ -120,15 +124,13 @@
         dataType: 'json',
         type: 'POST', //timeout: 10000,
 
-        success: function(data) { //使用$.each方法遍历返回的数据date,插入到id为#result中
-          //console.info(data);
+        success: function(data) {
           var ret = JSON.stringify(data);
           var coordinate = JSON.parse(ret).geo;
           var places = [];
+          //Store the data into the place array
           for (var x = 1; x < coordinate.length + 1; x++) {
-            //alert('started: '+coordinate.length);
-            //alert('started: '+coordinate[0]);
-            //var co = coordinate[x-1];
+
             var location = ['place', coordinate[x - 1][0], coordinate[x - 1][1], x];
             places.push(location);
             alert(places);
@@ -159,7 +161,7 @@
       return o;
     };
 
-
+    //set and add the google map into the front page
     function initMap(places) {
       var map = new google.maps.Map(document.getElementById('map'), {
         center: {
@@ -172,7 +174,10 @@
         map: map
       });
 
-      // Try HTML5 geolocation.
+      /* This function requires that you consent to location sharing when
+      prompted by your browser. If you see the error "The Geolocation service
+    failed.", it means you probably did not give permission for the browser to
+    locate you. The default positon will at the UK.*/
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(function(position) {
           var pos = {
@@ -190,7 +195,7 @@
         // Browser doesn't support Geolocation
         handleLocationError(false, infoWindow, map.getCenter());
       }
-      //setMarkers(map);
+      //Add the Markers into the map
       for (var i = 0; i < places.length; i++) {
         var place = places[i];
         var marker = new google.maps.Marker({
@@ -212,19 +217,8 @@
         'Error: The Geolocation service failed.' :
         'Error: Your browser doesn\'t support geolocation.');
     }
-    /*
-    var places = [
-    ['Bondi Beach', 55.3781, 1.274856, 4],
-    ['Coogee Beach', 55.3781, 2.259052, 5],
-    ['Cronulla Beach', 50.3781, 5, 3],
-    ['Manly Beach', 45.3781, 3.5, 2],
-    ['Maroubra Beach', 52.3781, 4.4, 1]
-    ];
-*/
-    function setMarkers(map) {
-
-    }
   </script>
+  <!--After load the googleAPI, run initMap() fuction -->
   <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCaR_5uJ06_W8tn8Z33OgT9mHrzDHACP38&callback=initMap&language=en-GB&region=GB">
   </script>
 </body>

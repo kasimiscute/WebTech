@@ -162,14 +162,16 @@
           var ret = JSON.stringify(data);
           var oldtweet = JSON.parse(ret).oldtweet;
           var newtweet = JSON.parse(ret).newtweet;
-          var index = 1;
+          var indexD = 0;
+          var indexT = 0;
 
           $("#result").append("<tr>" + oldtweet.length + " queries from database and " +
             newtweet.length + " queries from Twitter.</tr>");
           $.each(oldtweet, function(i, item) {
+            indexD++;
             var content =
               "<tr>" +
-              "<td>" + index + "</td>" +
+              "<td>" + indexD + "</td>" +
               "<td>Database</td>" +
               "<td>" + item.author + "</td>" +
               "<td>" + item.content + "</td>" +
@@ -178,13 +180,13 @@
               "<td><a href=" + item.uurl + " target=\"_blank\">link</a></td>" +
               "</tr>";
             $("#result").append(content);
-            index++;
           })
 
           $.each(newtweet, function(i, item) {
+            indexT++;
             var content =
               "<tr>" +
-              "<td>" + index + "</td>" +
+              "<td>" + indexT + "</td>" +
               "<td>Twitter</td>" +
               "<td>" + item.author + "</td>" +
               "<td>" + item.content + "</td>" +
@@ -193,9 +195,8 @@
               "<td><a href=" + item.uurl + " target=\"_blank\">link</a></td>" +
               "</tr>";
             $("#result").append(content);
-            index++;
           })
-          alert('Done');
+          alert(indexD+' tweets are returned from database and '+indexT+' tweets are returned from Twitter API.');
         },
         error: function(xhr, status, error) {
           alert('Error: ' + error.message);

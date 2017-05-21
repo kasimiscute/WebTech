@@ -51,6 +51,7 @@ function waitCallBack(param1, callback) {
 }
 
 var app = protocol.createServer(function (req, res) {
+	//req.url = 'localhost:3000/../webapp/index.html';
 	var pathname = url.parse(req.url).pathname;
 	var body = '';
 
@@ -168,10 +169,13 @@ var app = protocol.createServer(function (req, res) {
 	}
 	else {
 		file.serve(req, res, function (err, result) {
+			console.log(req.url);
 			if (err != null) {
+				//console.log(err);
+				//console.log(result);
 				console.error('Error serving %s - %s', req.url, err.message);
 				if (err.status === 404 || err.status === 500) {
-					file.serveFile(util.format('/%d.html', err.status), err.status, {}, req, res);
+					file.serveFile(util.format('/../webapp/%d.html', err.status), err.status, {}, req, res);
 				} else {
 					res.writeHead(err.status, err.headers);
 					res.end();
@@ -314,7 +318,7 @@ function writeProfile(querynew, querylength, queryID, profilepack, number, res, 
 
 function runQuery(querynew, querylength, queryID, tweetpack, number, res, pastDate, idList){
 	var querydate = '';
-	client.get('search/tweets', { q: querynew, count: 10}, function(err, data, response) {
+	client.get('search/tweets', { q: querynew, count: 100}, function(err, data, response) {
 		if (err) return console.error(err);
 		for (var indx in data.statuses) 
 		{
@@ -368,8 +372,9 @@ function runQuery(querynew, querylength, queryID, tweetpack, number, res, pastDa
 						newtweet = newtweet.replace("\"", "\'\'");
 					}
 
-					connection.query('insert into tweets value("'+tweet.user.screen_name+'","'+querydate+'","'+newtweet+'","'
-						+tweet.url+'","'+'null'+'","'+tweet.id_str+'")', function(err, rows, field) {
+					connection.query('insert into tweets value("'+tweet.user.screen_name+'","'+querydate+'","'
+						+newtweet+'", "http://twitter.com/'+tweet.user.screen_name+'/status/'+tweet.id_str
+						+'","http://twitter.com/'+tweet.user.screen_name+'","'+tweet.id_str+'")', function(err, rows, field) {
 							if(err) throw err
 						});
 					idList.push(tweet.id_str);

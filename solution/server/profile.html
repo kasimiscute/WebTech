@@ -6,10 +6,23 @@
   <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
   <meta charset="utf-8">
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.min.js"></script>
-  <title>Cooperative Gesture Handling</title>
+  <link rel="stylesheet" href="http://cdn.static.runoob.com/libs/bootstrap/3.3.7/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css">
+
+  <title>profile</title>
   <style>
     /* Always set the map height explicitly to define the size of the div
     * element that contains the map. */
+
+    td {
+      text-align: center;
+      vertical-align: middle!important;
+    }
+
+    th {
+      text-align: center;
+      vertical-align: middle!important;
+    }
 
     #map {
       height: 100%;
@@ -26,57 +39,107 @@
 </head>
 
 <body>
-  <div id="map" style="width:500px;height:380px;"></div>
-  <form id="newForm" onsubmit="return false;" >
-    <div class="row">
-      <div class="col-lg-10 col-lg-offset-1">
-        <!-- /input-group -->
-        <span class="label label-default" for="query">Input keyword here: </span>
-        <div class="input-group">
-          <input type="text" class="form-control" id="profile" name="profile" value="Chelsea">
-          <span class="input-group-btn">
+  <div class="container-fluid">
+    <div class="col-md-12">
+      <nav class="navbar navbar-default navbar-inverse navbar-fixed-top" role="navigation">
+        <div class="navbar-header">
+          <a class="navbar-brand" href="#">Tweet searching</a>
+        </div>
+        <div>
+          <ul class="nav navbar-nav">
+            <li>
+              <a href="/">Home</a>
+            </li>
+            <li class="active">
+              <a href="/profile.html" target="_blank">Profile</a>
+            </li>
+          </ul>
+        </div>
+      </nav>
+    </div>
+
+    <div style="padding: 50px 100px 10px;">
+      <h2 class="text-left"> The location of the tweets</h2>
+      <div id="map" class="col-md-offset-3" style="width:700px;height:400px;"></div>
+      <form id="newForm" onsubmit="return false;">
+        <div class="row">
+          <div class="col-lg-10 col-lg-offset-1">
+            <span class="label label-default" for="query">Input keyword here: </span>
+            <div class="input-group">
+              <input type="text" class="form-control" id="profile" name="profile" value="Chelsea">
+              <span class="input-group-btn">
             <button class="btn btn-primary" id="writeProfile">Write profile!</button>
           </span>
+            </div>
+          </div>
         </div>
-      </div>
-      <!-- /.col-lg-6 -->
+      </form>
     </div>
-  </form>
+
+
+    <div class="table-responsive">
+      <div class="col-lg-12">
+        <table class="table-hover col-lg-12 table-bordered table-striped" id="result" name="result">
+          <caption>Tweets</caption>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Source</th>
+              <th>Author</th>
+              <th>Text</th>
+              <th>Date</th>
+              <th>Tweet Link</th>
+              <th>Author Link</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+
+
   <script>
     var sendButton3 = document.getElementById('writeProfile');
     sendButton3.onclick = sendData3;
+
     function sendData3() {
       var form = document.getElementById('newForm');
       sendAjaxQuery3('/', JSON.stringify($('form').serializeObject()));
     }
+
     function sendAjaxQuery3(url, data) {
       $.ajax({
         url: url + 'profile.html',
         data: data,
         dataType: 'json',
-            type: 'POST', //timeout: 10000,
+        type: 'POST', //timeout: 10000,
 
-            success: function(data) { //使用$.each方法遍历返回的数据date,插入到id为#result中
-              //console.info(data);
-              var ret = JSON.stringify(data);
-              var coordinate = JSON.parse(ret).geo;
-              var places = [];
-              for(var x=1; x<coordinate.length+1; x++)
-              {
-                //alert('started: '+coordinate.length);
-                //alert('started: '+coordinate[0]);
-                //var co = coordinate[x-1];
-                var location = ['place', coordinate[x-1][0], coordinate[x-1][1], x];
-                places.push(location);
-                alert(places);
-                initMap(places);
-              }
-              alert('finished');
-            },
-            error: function(xhr, status, error) {
-              alert('Error: ' + error.message);
-            }
-          });
+        success: function(data) { //使用$.each方法遍历返回的数据date,插入到id为#result中
+          //console.info(data);
+          var ret = JSON.stringify(data);
+          var coordinate = JSON.parse(ret).geo;
+          var places = [];
+          for (var x = 1; x < coordinate.length + 1; x++) {
+            //alert('started: '+coordinate.length);
+            //alert('started: '+coordinate[0]);
+            //var co = coordinate[x-1];
+            var location = ['place', coordinate[x - 1][0], coordinate[x - 1][1], x];
+            places.push(location);
+            alert(places);
+            initMap(places);
+          }
+          alert('finished');
+        },
+        error: function(xhr, status, error) {
+          alert('Error: ' + error.message);
+        }
+      });
     }
 
 
@@ -118,7 +181,7 @@
           };
 
           infoWindow.setPosition(pos);
-          infoWindow.setContent('Location found.');
+          infoWindow.setContent('You are here.');
           map.setCenter(pos);
         }, function() {
           handleLocationError(true, infoWindow, map.getCenter());
@@ -159,11 +222,20 @@
     ];
 */
     function setMarkers(map) {
-      
+
     }
   </script>
-  <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCaR_5uJ06_W8tn8Z33OgT9mHrzDHACP38&callback=initMap">
+  <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCaR_5uJ06_W8tn8Z33OgT9mHrzDHACP38&callback=initMap&language=en-GB&region=GB">
   </script>
 </body>
+<footer>
+  <div class="col-md-12">
+    <br />
+    <p class="text-center">
+      @ 2017 Tweet searching system
+    </p>
+  </div>
+
+</footer>
 
 </html>

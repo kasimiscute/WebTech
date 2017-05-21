@@ -12,12 +12,12 @@
   <title>profile</title>
   <style>
     /* Set the table and map 's preference'*/
-
+/*
     td {
       text-align: center;
       vertical-align: middle!important;
     }
-
+*/
     th {
       text-align: center;
       vertical-align: middle!important;
@@ -71,10 +71,8 @@
           </div>
 
           <div class="col-md-6">
-            <form id="content">
-              <p>
-                hello world!
-              </p>
+            <form id="statistic">
+              <p>User Profile</p>
             </form>
           </div>
         </div>
@@ -113,19 +111,12 @@
             <caption>Tweets</caption>
             <thead>
               <tr>
-                <th>ID</th>
-                <th>Source</th>
-                <th>Author</th>
-                <th>Text</th>
-                <th>Date</th>
-                <th>Tweet Link</th>
-                <th>Author Link</th>
+                <th>Index</th>
+                <th>Tweet</th>
+                <th>Link</th>
               </tr>
             </thead>
             <tbody>
-              <tr>
-
-              </tr>
             </tbody>
           </table>
         </div>
@@ -157,16 +148,58 @@
         success: function(data) {
           var ret = JSON.stringify(data);
           var coordinate = JSON.parse(ret).geo;
+          var alltweet = JSON.parse(ret).alltweet;
+          var url = JSON.parse(ret).url;
+          var fivetweet = JSON.parse(ret).fivetweet;
+          var keyword = JSON.parse(ret).keyword;
+          var wordnumber = JSON.parse(ret).wordnumber;
+          var sevenkeyword = JSON.parse(ret).sevenkeyword;
+          var sevenwordnumber = JSON.parse(ret).sevenwordnumber;
+
           var places = [];
           //Store the data into the place array
           for (var x = 1; x < coordinate.length + 1; x++) {
-
             var location = ['place', coordinate[x - 1][0], coordinate[x - 1][1], x];
             places.push(location);
-            alert(places);
+            //alert(places);
             initMap(places);
           }
-          alert('finished');
+
+          $("#statistic").append('<p>Total number of Tweets: '+alltweet.length+'</p>');
+          $("#statistic").append('<p>Number of Tweets in the last 5 days (maximum 500): '+fivetweet.length+'</p>');
+          $("#statistic").append('<p>Number of Keywords: '+keyword.length+'</p>');
+          $("#statistic").append('<p>10 Most popular Keywords: ');
+          for (var y = 0; y < keyword.length; y++)
+          {
+            $("#statistic").append(keyword[y]+'('+wordnumber[y]+'), ');
+            if(y==10)
+            {
+              break;
+            }
+          }
+          $("#statistic").append('</p>');
+          $("#statistic").append('<p>10 Most popular Keywords in the last seven days: ');
+          for (var z = 0; z < sevenkeyword.length; z++)
+          {
+            $("#statistic").append(sevenkeyword[z]+'('+sevenwordnumber[z]+'), ');
+            if(z==10)
+            {
+              break;
+            }
+          }
+          $("#statistic").append('</p>');
+
+          for (var m = 1; m < alltweet.length+1; m++)
+          {
+            $("#result").append(
+              "<tr>" +
+              "<td>" + m + "</td>" +
+              "<td>" + alltweet[m] + "</td>" +
+              "<td><a href=" + url[m] + " target=\"_blank\">link</a></td>" +
+              "</tr>"
+              );
+          }
+          alert('There are '+coordinate.length+' tweets have coordinate.');
         },
         error: function(xhr, status, error) {
           alert('Error: ' + error.message);

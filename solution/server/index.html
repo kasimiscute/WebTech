@@ -18,13 +18,13 @@
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.min.js"></script>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
   <style type="text/css">
-    /* Set the table content in the middle */
+    /* Set the table content in the middle 
 
     td {
       text-align: center;
       vertical-align: middle!important;
     }
-
+*/
     th {
       text-align: center;
       vertical-align: middle!important;
@@ -61,7 +61,14 @@
       <form id="myForm" onsubmit="return false;">
         <div class="row">
           <div class="col-lg-10 col-lg-offset-1">
-            <p>Query example</p>
+            <p>This system will fetch all tweets that fits the query over the past week. 
+              Please try another query if the result is less than you expected.</p>
+            <h3>Waring!</h3> 
+              <p>1. Please do not input empry query or the system will reach rate limit. 
+              You need to wait at least an hour to run the system.</p>
+              <p>2. Please input the query in the same format as the example, or error might show up.</p>
+              <p>3. Please draw the chart after searching, or error will show up.</p>
+            <h3>Query example</h3>
             <p>who:(BBCSport) AND team:(Chelsea)</p>
             <span class="label label-default" for="query">Input query here: </span>
             <div class="input-group">
